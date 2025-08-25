@@ -5,7 +5,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -86,6 +86,17 @@ vim.o.confirm = true
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+
+-- Make a global that can disable to auto linter
+vim.g.use_save_linter = true
+vim.keymap.set('n', '<leader>fd', function()
+  vim.g.use_save_linter = not vim.g.use_save_linter
+end, { desc = 'toggle disabiling the auto linter' })
+
+-- vim.keymap.set('n', '<leader>nc', '<cmd>let @" = expand("%")<CR>', { desc = 'Copy the filepath of the current file the buffer' })
+vim.keymap.set('n', '<leader>nc', function()
+  vim.fn.setreg('*', vim.fn.expand '%')
+end, { desc = 'Copy the filepath of the current file into the clipboard' })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -180,6 +191,7 @@ require('lazy').setup({
       require('neogen').setup {}
 
       vim.keymap.set('n', '<leader>k', require('neogen').generate, {
+        desc = 'Auto generate documentation',
         noremap = true,
         silent = true,
       })
@@ -675,7 +687,7 @@ require('lazy').setup({
     cmd = { 'ConformInfo' },
     keys = {
       {
-        '<leader>f',
+        '<leader>ff',
         function()
           require('conform').format { async = true, lsp_format = 'fallback' }
         end,
@@ -691,7 +703,7 @@ require('lazy').setup({
         -- languages here or re-enable it for the disabled ones.
         -- local disable_filetypes = { c = true, cpp = true }
         local disable_filetypes = {}
-        if disable_filetypes[vim.bo[bufnr].filetype] then
+        if disable_filetypes[vim.bo[bufnr].filetype] or not vim.g.use_save_linter then
           return nil
         else
           return {
